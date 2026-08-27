@@ -61,7 +61,7 @@ function renderClient(){APP.mode='client';renderClientView()}
 function renderClientView(){renderTopbar('Hey, '+(APP.client.preferred_name||APP.client.first_name));renderNav();document.getElementById('main').innerHTML=clientView(APP.activeTab);bindClientEvents()}
 function switchMode(mode){APP.mode=mode;if(mode==='coach'){renderCoachHub();return}APP.selectedClient=null;APP.activeTab='today';loadClientData(APP.client.id).then(renderClient).catch(renderError)}
 
-async function loadIdentity(){const {data,error}=await sb.from('profiles').select('*').eq('id',APP.session.user.id).maybeSingle();if(error)throw error;APP.profile=data}
+async function loadIdentity(){const {data,error}=await sb.from('profiles').select('*').eq('id',APP.session.user.id).maybeSingle();if(error)throw error;APP.profile=Array.isArray(data)?data[0]:data}
 async function loadClient(userId){const {data,error}=await sb.from('clients').select('*').eq('user_id',userId).maybeSingle();if(error)throw error;APP.client=data}
 async function loadClientData(clientId){
   const [w,r,ns,n,m,p,notes,cq,qs]=await Promise.all([
