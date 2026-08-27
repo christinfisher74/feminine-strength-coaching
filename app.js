@@ -59,7 +59,7 @@ function renderTopbar(name){
 function renderNav(){const nav=document.getElementById('nav');nav.classList.remove('hide');nav.innerHTML=['today','training','nutrition','movement','progress','resources'].map(x=>'<button class="'+(APP.activeTab===x?'active':'')+'" data-tab="'+x+'">'+label(x)+'</button>').join('');nav.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{APP.activeTab=b.dataset.tab;renderClientView()})}
 function renderClient(){APP.mode='client';renderClientView()}
 function renderClientView(){renderTopbar('Hey, '+(APP.client.preferred_name||APP.client.first_name));renderNav();document.getElementById('main').innerHTML=clientView(APP.activeTab);bindClientEvents()}
-function switchMode(mode){APP.mode=mode;if(mode==='coach'){renderCoachHub();return}APP.selectedClient=null;APP.activeTab='today';loadClientData(APP.client.id).then(renderClient).catch(renderError)}
+function switchMode(mode){APP.mode=mode;if(mode==='coach'){renderCoachHub();return}APP.selectedClient=null;APP.activeTab='today';loadClient(APP.session.user.id).then(()=>loadClientData(APP.client.id)).then(renderClient).catch(renderError)}
 
 async function loadIdentity(){const {data,error}=await sb.from('profiles').select('*').eq('role','coach').limit(1);if(error)throw error;APP.profile=data?.[0]||null}
 async function loadClient(userId){const {data,error}=await sb.from('clients').select('*').eq('user_id',userId).maybeSingle();if(error)throw error;APP.client=data}
