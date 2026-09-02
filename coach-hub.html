@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#1E3329">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Coach Hub · Feminine Strength Co.</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --forest:#1E3329; --taupe:#C4A882; --olive:#7A9E7E; --cream:#FAF7F2; --cream-dark:#F0EBE3;
+    --black:#1A1A1A; --dgray:#555555; --mgray:#999999; --lgray:#E8E4DF; --white:#FFFFFF; --warn:#C4763A;
+    --success:#2D5016; --success-light:#EAF2EE; --radius:16px; --radius-sm:10px; --shadow:0 2px 14px rgba(30,51,41,0.07); }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--black); max-width:520px; margin:0 auto; padding-bottom:40px; }
+  .topbar { background:var(--forest); color:var(--white); padding:24px 20px 20px; border-bottom:3px solid var(--taupe); }
+  .eyebrow { font-size:9.5px; letter-spacing:1.5px; color:var(--taupe); font-weight:700; text-transform:uppercase; }
+  .title { font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:600; margin-top:3px; }
+  .sub { font-size:12px; color:rgba(255,255,255,0.65); margin-top:2px; }
+  .content { padding:18px; }
+  .section-label { font-size:10px; letter-spacing:1.3px; color:var(--taupe); font-weight:700; text-transform:uppercase; margin:20px 0 10px; }
+  .section-label:first-child { margin-top:0; }
+
+  .roster-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:6px; }
+  .roster-stat-box { background:var(--white); border-radius:var(--radius-sm); padding:13px 6px; box-shadow:var(--shadow); text-align:center; }
+  .roster-stat-num { font-family:'Cormorant Garamond',serif; font-size:24px; font-weight:600; color:var(--forest); }
+  .roster-stat-label { font-size:9px; color:var(--mgray); margin-top:1px; }
+
+  .client-card { background:var(--white); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow); margin-bottom:14px; }
+  .client-head { display:flex; align-items:center; gap:12px; margin-bottom:13px; }
+  .client-avatar { width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-family:'Cormorant Garamond',serif; font-weight:600; font-size:18px; color:var(--white); flex-shrink:0; }
+  .client-name { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:600; color:var(--forest); }
+  .client-meta { font-size:11px; color:var(--mgray); margin-top:1px; }
+
+  .status-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+  .status-pill { font-size:11px; font-weight:600; padding:6px 12px; border-radius:20px; }
+  .pill-good { background:var(--success-light); color:var(--success); }
+  .pill-warn { background:#FDF3E4; color:#8A6A2F; }
+  .pill-bad { background:#FDF0E6; color:var(--warn); }
+  .pill-muted { background:var(--cream-dark); color:var(--mgray); }
+
+  .client-detail-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--lgray); font-size:12.5px; }
+  .client-detail-row:last-of-type { border-bottom:none; margin-bottom:12px; }
+  .client-detail-row .dlabel { color:var(--mgray); }
+  .client-detail-row .dvalue { color:var(--forest); font-weight:600; text-align:right; }
+
+  .open-btn { display:block; text-align:center; background:var(--forest); color:var(--white); font-weight:600;
+    font-size:13px; padding:12px; border-radius:var(--radius-sm); text-decoration:none; }
+
+  .empty-note { text-align:center; padding:20px 10px; color:var(--mgray); font-size:12px; }
+  .refresh-btn { background:var(--cream-dark); color:var(--forest); font-weight:600; font-size:13px;
+    padding:12px; border-radius:var(--radius-sm); width:100%; border:none; margin-top:4px; }
+  .setup-note { color:var(--warn); font-size:13px; line-height:1.6; background:var(--white); border-radius:var(--radius);
+    padding:17px; box-shadow:var(--shadow); margin-bottom:14px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="eyebrow">COACH HUB</div>
+  <div class="title">Feminine Strength Co.</div>
+  <div class="sub" id="dateSub">—</div>
+</div>
+
+<div class="content" id="mainContent">
+  <div class="roster-stats">
+    <div class="roster-stat-box"><div class="roster-stat-num" id="rosterCount">—</div><div class="roster-stat-label">clients</div></div>
+    <div class="roster-stat-box"><div class="roster-stat-num" id="rosterCheckedIn">—</div><div class="roster-stat-label">checked in today</div></div>
+    <div class="roster-stat-box"><div class="roster-stat-num" id="rosterTrained">—</div><div class="roster-stat-label">trained today</div></div>
+  </div>
+
+  <div class="section-label">Your clients</div>
+  <div id="rosterList"><div class="empty-note">Loading...</div></div>
+
+  <button class="refresh-btn" id="refreshBtn">Refresh</button>
+</div>
+
+<script>
+/* ============================================================
+   Add a new client by adding one entry here — everything else
+   (fetching, cards, stats) works off this list automatically.
+   Each client's app must be saving to Supabase (not just
+   localStorage) for their card to show real data.
+   ============================================================ */
+const CLIENTS = [
+  { key:'aliyah', name:'Aliyah', tablePrefix:'aliyah_', trainerViewUrl:'https://christinfisher74.github.io/Aliyah/trainer-view.html', color:'#7A9E7E' },
+  // { key:'frankie', name:'Frankie', tablePrefix:'frankie_', trainerViewUrl:'https://christinfisher74.github.io/frankie/trainer-view.html', color:'#C4A882' },
+];
+
+const SUPABASE_URL = 'https://mimaexschnbsdnfcluev.supabase.co';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY_HERE';
+let sb = null, ready = false;
+try { sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); ready = true; } catch (e) { console.error(e); }
+
+const $ = id => document.getElementById(id);
+const todayISO = () => new Date().toISOString().slice(0,10);
+const initials = name => name.trim()[0].toUpperCase();
+
+$('dateSub').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+
+if (!ready) {
+  const banner = document.createElement('div');
+  banner.className = 'setup-note';
+  banner.innerHTML = '<b>Setup needed:</b> paste your Supabase anon key in this file to load client data.';
+  $('mainContent').prepend(banner);
+}
+
+async function loadClientSnapshot(client) {
+  const p = client.tablePrefix;
+  const { data: checkin } = await sb.from(p + 'checkins').select('*').eq('date', todayISO()).maybeSingle();
+
+  const { data: recentCheckins } = await sb.from(p + 'checkins').select('date').order('date', { ascending:false }).limit(60);
+  let streak = 0;
+  if (recentCheckins && recentCheckins.length) {
+    let cursor = new Date(todayISO() + 'T00:00:00');
+    const dateSet = new Set(recentCheckins.map(c => c.date));
+    while (dateSet.has(cursor.toISOString().slice(0,10))) { streak++; cursor.setDate(cursor.getDate() - 1); }
+  }
+
+  const { data: lastSession } = await sb.from(p + 'sessions').select('date').order('date', { ascending:false }).limit(1).maybeSingle();
+
+  return { client, checkin, streak, lastSessionDate: lastSession ? lastSession.date : null };
+}
+
+function dayTypePill(dayType) {
+  if (!dayType) return '<span class="status-pill pill-muted">Not checked in yet</span>';
+  const map = { good:'pill-good', busy:'pill-warn', horrible:'pill-bad' };
+  return `<span class="status-pill ${map[dayType] || 'pill-muted'}">${dayType.charAt(0).toUpperCase() + dayType.slice(1)} day</span>`;
+}
+function trainedPill(checkin) {
+  if (!checkin) return '';
+  return checkin.trained
+    ? '<span class="status-pill pill-good">✓ Trained today</span>'
+    : '<span class="status-pill pill-muted">No session logged yet</span>';
+}
+function fmtShort(d) {
+  if (!d) return '—';
+  return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric' });
+}
+
+function renderClientCard(snap) {
+  const { client, checkin, streak, lastSessionDate } = snap;
+  return `
+    <div class="client-card">
+      <div class="client-head">
+        <div class="client-avatar" style="background:${client.color};">${initials(client.name)}</div>
+        <div>
+          <div class="client-name">${client.name}</div>
+          <div class="client-meta">${streak > 0 ? streak + '-day check-in streak' : 'No active streak'}</div>
+        </div>
+      </div>
+      <div class="status-row">
+        ${dayTypePill(checkin && checkin.day_type)}
+        ${trainedPill(checkin)}
+      </div>
+      <div class="client-detail-row"><span class="dlabel">Last session logged</span><span class="dvalue">${fmtShort(lastSessionDate)}</span></div>
+      ${checkin && checkin.notes ? `<div class="client-detail-row"><span class="dlabel">Flagged today</span><span class="dvalue">"${checkin.notes}"</span></div>` : ''}
+      <a class="open-btn" href="${client.trainerViewUrl}">Open ${client.name}'s full view →</a>
+    </div>`;
+}
+
+async function loadAll() {
+  if (!ready) return;
+  $('rosterList').innerHTML = '<div class="empty-note">Loading...</div>';
+  const snapshots = await Promise.all(CLIENTS.map(loadClientSnapshot));
+
+  $('rosterCount').textContent = CLIENTS.length;
+  $('rosterCheckedIn').textContent = snapshots.filter(s => s.checkin).length;
+  $('rosterTrained').textContent = snapshots.filter(s => s.checkin && s.checkin.trained).length;
+
+  $('rosterList').innerHTML = snapshots.length
+    ? snapshots.map(renderClientCard).join('')
+    : '<div class="empty-note">No clients set up yet. Add one in the CLIENTS list in this file.</div>';
+}
+
+$('refreshBtn').addEventListener('click', loadAll);
+if (ready) loadAll();
+</script>
+</body>
+</html>
