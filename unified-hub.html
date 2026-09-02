@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#1E3329">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Coach Hub · Feminine Strength Co.</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --forest:#1E3329; --taupe:#C4A882; --olive:#7A9E7E; --cream:#FAF7F2; --cream-dark:#F0EBE3;
+    --black:#1A1A1A; --dgray:#555555; --mgray:#999999; --lgray:#E8E4DF; --white:#FFFFFF; --warn:#C4763A;
+    --success:#2D5016; --success-light:#EAF2EE; --radius:16px; --radius-sm:10px; --shadow:0 2px 14px rgba(30,51,41,0.07); }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--black); max-width:520px; margin:0 auto; padding-bottom:40px; }
+  .topbar { background:var(--forest); color:var(--white); padding:24px 20px 20px; border-bottom:3px solid var(--taupe); }
+  .topbar-row { display:flex; align-items:center; gap:10px; }
+  .back-btn { background:rgba(255,255,255,0.12); color:var(--white); width:32px; height:32px; border-radius:50%;
+    font-size:16px; flex-shrink:0; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer; }
+  .eyebrow { font-size:9.5px; letter-spacing:1.5px; color:var(--taupe); font-weight:700; text-transform:uppercase; }
+  .title { font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:600; margin-top:3px; }
+  .sub { font-size:12px; color:rgba(255,255,255,0.65); margin-top:2px; }
+  .content { padding:18px; }
+  .section-label { font-size:10px; letter-spacing:1.3px; color:var(--taupe); font-weight:700; text-transform:uppercase; margin:20px 0 10px; }
+  .section-label:first-child { margin-top:0; }
+  .card { background:var(--white); border-radius:var(--radius); padding:17px; box-shadow:var(--shadow); margin-bottom:14px; }
+  .card-title { font-family:'Cormorant Garamond',serif; font-size:18px; font-weight:600; color:var(--forest); margin-bottom:8px; }
+
+  .roster-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:6px; }
+  .stat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:14px; }
+  .stat-box { background:var(--white); border-radius:var(--radius-sm); padding:13px 6px; box-shadow:var(--shadow); text-align:center; }
+  .stat-num { font-family:'Cormorant Garamond',serif; font-size:24px; font-weight:600; color:var(--forest); }
+  .stat-label { font-size:9px; color:var(--mgray); margin-top:1px; }
+
+  .client-card { background:var(--white); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow); margin-bottom:14px; cursor:pointer; transition:transform .12s; }
+  .client-card:active { transform:scale(.98); }
+  .client-head { display:flex; align-items:center; gap:12px; margin-bottom:13px; }
+  .client-avatar { width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-family:'Cormorant Garamond',serif; font-weight:600; font-size:18px; color:var(--white); flex-shrink:0; }
+  .client-name { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:600; color:var(--forest); }
+  .client-meta { font-size:11px; color:var(--mgray); margin-top:1px; }
+  .status-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+  .status-pill { font-size:11px; font-weight:600; padding:6px 12px; border-radius:20px; }
+  .pill-good { background:var(--success-light); color:var(--success); }
+  .pill-warn { background:#FDF3E4; color:#8A6A2F; }
+  .pill-bad { background:#FDF0E6; color:var(--warn); }
+  .pill-muted { background:var(--cream-dark); color:var(--mgray); }
+  .client-detail-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--lgray); font-size:12.5px; }
+  .client-detail-row:last-of-type { border-bottom:none; margin-bottom:0; }
+  .client-detail-row .dlabel { color:var(--mgray); }
+  .client-detail-row .dvalue { color:var(--forest); font-weight:600; text-align:right; }
+  .open-hint { text-align:center; color:var(--taupe); font-size:11.5px; font-weight:600; margin-top:12px; }
+
+  textarea, input { font-family:inherit; width:100%; border:1px solid var(--lgray); border-radius:var(--radius-sm);
+    padding:10px 12px; font-size:13px; background:var(--cream); color:var(--black); }
+  textarea { resize:none; min-height:80px; margin-top:8px; }
+  .btn { background:var(--forest); color:var(--white); font-weight:600; font-size:13.5px; padding:12px;
+    border-radius:var(--radius-sm); width:100%; margin-top:10px; border:none; cursor:pointer; }
+  .btn:active { opacity:.85; }
+  .refresh-btn { background:var(--cream-dark); color:var(--forest); font-weight:600; font-size:13px;
+    padding:12px; border-radius:var(--radius-sm); width:100%; border:none; margin-top:4px; cursor:pointer; }
+
+  .list-row { padding:10px 0; border-bottom:1px solid var(--lgray); }
+  .list-row:last-child { border-bottom:none; }
+  .row-date { font-size:10px; color:var(--mgray); font-weight:600; text-transform:uppercase; letter-spacing:.4px; }
+  .row-text { font-size:12.5px; color:var(--dgray); margin-top:2px; line-height:1.5; }
+  .empty-state { text-align:center; padding:16px 10px; color:var(--mgray); font-size:12px; }
+
+  .phase-card { background:var(--white); border-radius:var(--radius); padding:16px 18px; box-shadow:var(--shadow); margin-bottom:12px; }
+  .phase-tag { font-size:9.5px; letter-spacing:1px; color:var(--taupe); font-weight:700; text-transform:uppercase; }
+  .phase-name { font-family:'Cormorant Garamond',serif; font-size:19px; font-weight:600; color:var(--forest); margin:2px 0 10px; }
+  .prog-ex { padding:8px 0; border-bottom:1px solid var(--lgray); }
+  .prog-ex:last-child { border-bottom:none; }
+  .prog-ex-name { font-size:12.5px; font-weight:600; color:var(--black); }
+  .prog-ex-cue { font-size:11px; color:var(--dgray); margin-top:2px; line-height:1.5; }
+
+  .day-block { padding:14px; background:var(--cream-dark); border-radius:var(--radius-sm); margin-bottom:12px; }
+  .day-date { font-size:10.5px; color:var(--mgray); font-weight:700; text-transform:uppercase; letter-spacing:.4px; margin-bottom:8px; }
+  .row { display:flex; justify-content:space-between; padding:6px 0; font-size:12.5px; border-bottom:1px solid var(--lgray); }
+  .row:last-child { border-bottom:none; }
+  .row .l { color:var(--dgray); }
+  .row .v { color:var(--forest); font-weight:600; text-align:right; }
+
+  .setup-note { color:var(--warn); font-size:13px; line-height:1.6; background:var(--white); border-radius:var(--radius);
+    padding:17px; box-shadow:var(--shadow); margin-bottom:14px; }
+  .view { display:none; }
+  .view.active { display:block; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-row">
+    <button class="back-btn" id="backBtn" style="display:none;" onclick="goToRoster()">←</button>
+    <div>
+      <div class="eyebrow" id="topEyebrow">COACH HUB</div>
+      <div class="title" id="topTitle">Feminine Strength Co.</div>
+      <div class="sub" id="topSub">—</div>
+    </div>
+  </div>
+</div>
+
+<div class="content" id="mainContent">
+
+  <!-- ============ ROSTER VIEW ============ -->
+  <div class="view active" id="view-roster">
+    <div class="roster-stats">
+      <div class="stat-box"><div class="stat-num" id="rosterCount">—</div><div class="stat-label">clients</div></div>
+      <div class="stat-box"><div class="stat-num" id="rosterCheckedIn">—</div><div class="stat-label">checked in today</div></div>
+      <div class="stat-box"><div class="stat-num" id="rosterTrained">—</div><div class="stat-label">trained today</div></div>
+    </div>
+    <div class="section-label">Your clients — tap a card to open</div>
+    <div id="rosterList"><div class="empty-state">Loading...</div></div>
+    <button class="refresh-btn" id="refreshRosterBtn">Refresh</button>
+  </div>
+
+  <!-- ============ ALIYAH DETAIL VIEW ============ -->
+  <div class="view" id="view-aliyah">
+    <div class="card">
+      <div class="card-title">Write a note for Aliyah</div>
+      <div style="font-size:11.5px; color:var(--mgray); margin-bottom:0;">She sees this immediately in her Coach Notes tab.</div>
+      <textarea id="aliyahNoteInput" placeholder="What you worked on, what clicked, what to focus on before next time..."></textarea>
+      <button class="btn" id="aliyahNoteSaveBtn">Save note for Aliyah</button>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="stat-num" id="aliyahStatSessions">—</div><div class="stat-label">sessions</div></div>
+      <div class="stat-box"><div class="stat-num" id="aliyahStatCheckins">—</div><div class="stat-label">check-ins</div></div>
+      <div class="stat-box"><div class="stat-num" id="aliyahStatPhotos">—</div><div class="stat-label">photos</div></div>
+    </div>
+    <div class="section-label">Program overview — all 12 weeks</div>
+    <div id="aliyahProgramOverview"></div>
+    <div class="section-label">Previous notes</div>
+    <div class="card"><div id="aliyahPrevNotesList"><div class="empty-state">Loading...</div></div></div>
+    <div class="section-label">Check-ins</div>
+    <div class="card"><div id="aliyahCheckinList"><div class="empty-state">Loading...</div></div></div>
+    <div class="section-label">Sessions logged</div>
+    <div class="card"><div id="aliyahSessionList"><div class="empty-state">Loading...</div></div></div>
+    <div class="section-label">Food log — protein-focused</div>
+    <div class="card"><div id="aliyahProteinList"><div class="empty-state">Loading...</div></div></div>
+    <div class="section-label">Movement log</div>
+    <div class="card"><div id="aliyahMovementList"><div class="empty-state">Loading...</div></div></div>
+    <div class="section-label">Wins</div>
+    <div class="card"><div id="aliyahWinList"><div class="empty-state">Loading...</div></div></div>
+    <div class="section-label">Progress photos</div>
+    <div class="card"><div id="aliyahPhotoGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;"><div class="empty-state" style="grid-column:1/-1;">Loading...</div></div></div>
+    <button class="refresh-btn" id="aliyahRefreshBtn">Refresh</button>
+  </div>
+
+  <!-- ============ FRANKIE DETAIL VIEW ============ -->
+  <div class="view" id="view-frankie">
+    <div class="card">
+      <div class="card-title">Write a note for Frankie</div>
+      <div style="font-size:11.5px; color:var(--mgray); margin-bottom:0;">She sees this in her Coach Notes tab.</div>
+      <textarea id="frankieNoteInput" placeholder="What you worked on, what clicked, what to focus on before next time..."></textarea>
+      <button class="btn" id="frankieNoteSaveBtn">Save note for Frankie</button>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="stat-num" id="frankieStatDays">—</div><div class="stat-label">days logged</div></div>
+      <div class="stat-box"><div class="stat-num" id="frankieStatStreak">—</div><div class="stat-label">day streak</div></div>
+      <div class="stat-box"><div class="stat-num" id="frankieStatFlares">—</div><div class="stat-label">flare days</div></div>
+    </div>
+    <div class="section-label">Previous notes</div>
+    <div class="card"><div id="frankiePrevNotesList"><div class="empty-state">Loading...</div></div></div>
+    <div class="section-label">Recent daily logs</div>
+    <div id="frankieLogsList"><div class="empty-state">Loading...</div></div>
+    <button class="refresh-btn" id="frankieRefreshBtn">Refresh</button>
+  </div>
+
+</div>
+
+<script>
+/* ============================================================
+   Add a new client by adding one entry here, then giving them
+   a detail view + loader following the same pattern as Aliyah
+   (schema:'prefixed') or Frankie (schema:'shared').
+   ============================================================ */
+const CLIENTS = [
+  { key:'aliyah', name:'Aliyah', schema:'prefixed', tablePrefix:'aliyah_', color:'#7A9E7E' },
+  { key:'frankie', name:'Frankie', schema:'shared', clientKey:'frankie', color:'#C4A882' },
+];
+
+const SUPABASE_URL = 'https://mimaexschnbsdnfcluev.supabase.co';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY_HERE';
+let sb = null, ready = false;
+try { sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); ready = true; } catch (e) { console.error(e); }
+
+const $ = id => document.getElementById(id);
+const todayISO = () => new Date().toISOString().slice(0,10);
+const fmtShort = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric' });
+const fmtLong = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+const initials = name => name.trim()[0].toUpperCase();
+const ENERGY_EMOJI = ['😴','😐','🙂','💪','🔥'];
+
+if (!ready) {
+  const banner = document.createElement('div');
+  banner.className = 'setup-note';
+  banner.innerHTML = '<b>Setup needed:</b> paste your Supabase anon key in this file to load client data.';
+  $('mainContent').prepend(banner);
+}
+
+/* ============ ROUTER ============ */
+function goToRoster() {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  $('view-roster').classList.add('active');
+  $('backBtn').style.display = 'none';
+  $('topEyebrow').textContent = 'COACH HUB';
+  $('topTitle').textContent = 'Feminine Strength Co.';
+  $('topSub').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+  loadRoster();
+}
+function goToClient(key) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  $('view-' + key).classList.add('active');
+  $('backBtn').style.display = 'flex';
+  $('topEyebrow').textContent = 'COACH VIEW · READ-ONLY';
+  const client = CLIENTS.find(c => c.key === key);
+  $('topTitle').textContent = client.name;
+  $('topSub').textContent = 'Tap ← to go back to your roster';
+  if (key === 'aliyah') loadAliyah();
+  if (key === 'frankie') loadFrankie();
+}
+
+/* ============ ROSTER ============ */
+async function loadClientSnapshot(client) {
+  if (client.schema === 'shared') return loadSharedSchemaSnapshot(client);
+  const p = client.tablePrefix;
+  const { data: checkin } = await sb.from(p + 'checkins').select('*').eq('date', todayISO()).maybeSingle();
+  const { data: recentCheckins } = await sb.from(p + 'checkins').select('date').order('date', { ascending:false }).limit(60);
+  let streak = 0;
+  if (recentCheckins && recentCheckins.length) {
+    let cursor = new Date(todayISO() + 'T00:00:00');
+    const dateSet = new Set(recentCheckins.map(c => c.date));
+    while (dateSet.has(cursor.toISOString().slice(0,10))) { streak++; cursor.setDate(cursor.getDate() - 1); }
+  }
+  const { data: lastSession } = await sb.from(p + 'sessions').select('date').order('date', { ascending:false }).limit(1).maybeSingle();
+  return { client, schema:'prefixed', checkin, streak, lastSessionDate: lastSession ? lastSession.date : null };
+}
+async function loadSharedSchemaSnapshot(client) {
+  const { data: rows } = await sb.from('client_daily_logs').select('log_date,payload').eq('client_key', client.clientKey).order('log_date', { ascending:false }).limit(60);
+  const todayRow = (rows || []).find(r => r.log_date === todayISO());
+  const todayPayload = todayRow ? todayRow.payload : null;
+  let streak = 0;
+  if (rows && rows.length) {
+    let cursor = new Date(todayISO() + 'T00:00:00');
+    const dateSet = new Set(rows.map(r => r.log_date));
+    while (dateSet.has(cursor.toISOString().slice(0,10))) { streak++; cursor.setDate(cursor.getDate() - 1); }
+  }
+  const lastMoved = (rows || []).find(r => r.payload && r.payload.daily && r.payload.daily.checkins && r.payload.daily.checkins.moved);
+  const lastAnyLog = rows && rows.length ? rows[0].log_date : null;
+  return {
+    client, schema:'shared', streak,
+    energy: todayPayload && todayPayload.daily ? todayPayload.daily.energy : null,
+    trainedToday: !!(todayPayload && todayPayload.daily && todayPayload.daily.checkins && todayPayload.daily.checkins.moved),
+    hasCheckinToday: !!todayPayload,
+    lastSessionDate: lastMoved ? lastMoved.log_date : lastAnyLog,
+  };
+}
+function dayTypePill(dayType) {
+  if (!dayType) return '<span class="status-pill pill-muted">Not checked in yet</span>';
+  const map = { good:'pill-good', busy:'pill-warn', horrible:'pill-bad' };
+  return `<span class="status-pill ${map[dayType] || 'pill-muted'}">${dayType.charAt(0).toUpperCase() + dayType.slice(1)} day</span>`;
+}
+function trainedPill(checkin) {
+  if (!checkin) return '';
+  return checkin.trained ? '<span class="status-pill pill-good">✓ Trained today</span>' : '<span class="status-pill pill-muted">No session logged yet</span>';
+}
+function renderClientCard(snap) {
+  const { client, streak, lastSessionDate } = snap;
+  let statusHtml;
+  if (snap.schema === 'shared') {
+    statusHtml = `${snap.hasCheckinToday ? `<span class="status-pill pill-good">${ENERGY_EMOJI[(snap.energy||3)-1]} Checked in</span>` : '<span class="status-pill pill-muted">Not checked in yet</span>'}
+      ${snap.trainedToday ? '<span class="status-pill pill-good">✓ Moved today</span>' : '<span class="status-pill pill-muted">No movement logged yet</span>'}`;
+  } else {
+    statusHtml = `${dayTypePill(snap.checkin && snap.checkin.day_type)}${trainedPill(snap.checkin)}`;
+  }
+  return `
+    <div class="client-card" onclick="goToClient('${client.key}')">
+      <div class="client-head">
+        <div class="client-avatar" style="background:${client.color};">${initials(client.name)}</div>
+        <div><div class="client-name">${client.name}</div><div class="client-meta">${streak > 0 ? streak + '-day check-in streak' : 'No active streak'}</div></div>
+      </div>
+      <div class="status-row">${statusHtml}</div>
+      <div class="client-detail-row"><span class="dlabel">Last activity logged</span><span class="dvalue">${lastSessionDate ? fmtShort(lastSessionDate) : '—'}</span></div>
+      ${snap.schema !== 'shared' && snap.checkin && snap.checkin.notes ? `<div class="client-detail-row"><span class="dlabel">Flagged today</span><span class="dvalue">"${snap.checkin.notes}"</span></div>` : ''}
+      <div class="open-hint">Tap to open full view →</div>
+    </div>`;
+}
+async function loadRoster() {
+  if (!ready) return;
+  $('rosterList').innerHTML = '<div class="empty-state">Loading...</div>';
+  const snapshots = await Promise.all(CLIENTS.map(loadClientSnapshot));
+  $('rosterCount').textContent = CLIENTS.length;
+  $('rosterCheckedIn').textContent = snapshots.filter(s => s.schema === 'shared' ? s.hasCheckinToday : s.checkin).length;
+  $('rosterTrained').textContent = snapshots.filter(s => s.schema === 'shared' ? s.trainedToday : (s.checkin && s.checkin.trained)).length;
+  $('rosterList').innerHTML = snapshots.length ? snapshots.map(renderClientCard).join('') : '<div class="empty-state">No clients set up yet.</div>';
+}
+$('refreshRosterBtn').addEventListener('click', loadRoster);
+
+/* ============ ALIYAH DETAIL ============ */
+const LOWER_ORDER=['squat','hinge','unilateral','hipext','plank','finisher'];
+const UPPER_ORDER=['push','pull','pull2','carry','finisher'];
+const ALIYAH_PROGRAM=[
+ { label:'Weeks 1-4 — Assess + Establish',
+   lower:{ squat:{name:'Goblet squat',cue:"Feet planted, weight through the whole foot. Sit back and down like reaching for a chair."},
+     hinge:{name:'DB Romanian deadlift',cue:"Drive feet into the floor — legs stabilize, not the low back. Stop where the hinge is felt."},
+     unilateral:{name:'Reverse lunge',cue:'Step back under control, front foot glued down.'},
+     hipext:{name:'Glute bridge',cue:'Feet close to hips, drive through heels, squeeze at the top.'},
+     plank:{name:'Front plank',cue:'Full-body brace, no sagging or piking hips.'},
+     finisher:{name:'Easy incline walk',cue:'8-10 min, conversational pace.'} },
+   upper:{ push:{name:'Seated DB shoulder press',cue:'Back pressed into bench, legs active. Press without ribs flaring.'},
+     pull:{name:'Seated cable row',cue:'Pull with shoulder blades first, elbows close.'},
+     pull2:{name:'Lat pulldown',cue:'Elbows drive down and back, chest lifted.'},
+     carry:{name:'Suitcase carry',cue:'Tall posture, no leaning toward the weight.'},
+     finisher:{name:'Easy incline walk',cue:'8-10 min, conversational pace.'} } },
+ { label:'Weeks 5-8 — Build',
+   lower:{ squat:{name:'Front squat',cue:'Elbows up for rack position, brace before every rep.'},
+     hinge:{name:'Barbell RDL',cue:'Feet glued down, bar close to legs. Stop at the hinge.'},
+     unilateral:{name:'Bulgarian split squat',cue:'Back foot elevated, control the lower.'},
+     hipext:{name:'Barbell hip thrust',cue:'Drive through heels to lockout, no hyperextending.'},
+     plank:{name:'Side plank',cue:'Stack hips and shoulders.'},
+     finisher:{name:'Rower or bike intervals',cue:'8-10 min work/rest.'} },
+   upper:{ push:{name:'Standing DB shoulder press',cue:'Braced standing, no leaning back to press.'},
+     pull:{name:'Single-arm DB row',cue:'Free hand braced, row to hip, squeeze shoulder blade.'},
+     pull2:{name:'Lat pulldown (heavier)',cue:'Same feeling, heavier load.'},
+     carry:{name:"Farmer's carry",cue:'Steady pace, tall posture.'},
+     finisher:{name:'Rower or bike intervals',cue:'8-10 min work/rest.'} } },
+ { label:'Weeks 9-12 — Progress + Own It',
+   lower:{ squat:{name:'Back squat',cue:'Own the setup and bracing before unracking.'},
+     hinge:{name:'Trap bar deadlift',cue:'Full-body tension before the pull.'},
+     unilateral:{name:'Loaded walking lunge',cue:'Load over midline, front knee tracks straight.'},
+     hipext:{name:'Single-leg hip thrust',cue:'One leg at a time, hips stay square.'},
+     plank:{name:'Weighted / extended plank',cue:'Full brace maintained the entire time.'},
+     finisher:{name:'Short HIIT circuit',cue:'8-10 min, her choice of format.'} },
+   upper:{ push:{name:'Standing barbell/DB press',cue:'Heavier load, legs and core stabilize.'},
+     pull:{name:'Chest-supported row',cue:'Chest pinned to pad, pull with the back.'},
+     pull2:{name:'Assisted pull-up / wide pulldown',cue:'Full stretch, elbows drive down hard.'},
+     carry:{name:"Heavy farmer's carry",cue:'Grip + total-body control.'},
+     finisher:{name:'Short HIIT circuit',cue:'8-10 min, her choice of format.'} } },
+];
+function renderAliyahProgramOverview(){
+  $('aliyahProgramOverview').innerHTML = ALIYAH_PROGRAM.map(phase => `
+    <div class="phase-card"><div class="phase-tag">LOWER BODY DAY (MON)</div><div class="phase-name">${phase.label}</div>
+      ${LOWER_ORDER.map(k=>`<div class="prog-ex"><div class="prog-ex-name">${phase.lower[k].name}</div><div class="prog-ex-cue">${phase.lower[k].cue}</div></div>`).join('')}
+    </div>
+    <div class="phase-card"><div class="phase-tag">UPPER BODY DAY (WED)</div><div class="phase-name">${phase.label}</div>
+      ${UPPER_ORDER.map(k=>`<div class="prog-ex"><div class="prog-ex-name">${phase.upper[k].name}</div><div class="prog-ex-cue">${phase.upper[k].cue}</div></div>`).join('')}
+    </div>`).join('');
+}
+renderAliyahProgramOverview();
+
+$('aliyahNoteSaveBtn').addEventListener('click', async () => {
+  if (!ready) { alert('Add your Supabase key in this file first.'); return; }
+  const note = $('aliyahNoteInput').value.trim();
+  if (!note) return;
+  const btn = $('aliyahNoteSaveBtn'); btn.disabled = true; btn.textContent = 'Saving...';
+  const { error } = await sb.from('aliyah_coach_notes').insert({ date: todayISO(), note });
+  btn.disabled = false; btn.textContent = 'Save note for Aliyah';
+  if (error) { alert('Something went wrong saving that. Try again.'); return; }
+  $('aliyahNoteInput').value = '';
+  loadAliyah();
+});
+async function loadAliyah() {
+  if (!ready) return;
+  const { data: notes } = await sb.from('aliyah_coach_notes').select('*').order('date', { ascending:false }).limit(20);
+  $('aliyahPrevNotesList').innerHTML = (notes && notes.length) ? notes.map(n => `
+    <div class="list-row"><div class="row-date">${fmtShort(n.date)}</div><div class="row-text">${n.note}</div></div>
+  `).join('') : '<div class="empty-state">No notes written yet.</div>';
+
+  const { count: sessionCount } = await sb.from('aliyah_sessions').select('*', { count:'exact', head:true });
+  $('aliyahStatSessions').textContent = sessionCount ?? 0;
+  const { count: checkinCount } = await sb.from('aliyah_checkins').select('*', { count:'exact', head:true });
+  $('aliyahStatCheckins').textContent = checkinCount ?? 0;
+  const { count: photoCount } = await sb.from('aliyah_photos').select('*', { count:'exact', head:true });
+  $('aliyahStatPhotos').textContent = photoCount ?? 0;
+
+  const { data: checkins } = await sb.from('aliyah_checkins').select('*').order('date', { ascending:false }).limit(20);
+  $('aliyahCheckinList').innerHTML = (checkins && checkins.length) ? checkins.map(r => `
+    <div class="list-row"><div class="row-date">${fmtShort(r.date)} · ${r.day_type}</div>
+    <div class="row-text">${r.trained ? '✓ trained' : 'no session'} · ${r.protein_hit ? '✓ protein' : 'protein missed'}${r.water ? ' · ✓ water' : ''}${r.electrolytes ? ' · ✓ electrolytes' : ''}${r.notes ? '<br>"' + r.notes + '"' : ''}</div></div>
+  `).join('') : '<div class="empty-state">No check-ins yet.</div>';
+
+  const { data: sessions } = await sb.from('aliyah_sessions').select('*').order('date', { ascending:false }).limit(20);
+  $('aliyahSessionList').innerHTML = (sessions && sessions.length) ? sessions.map(r => {
+    const items = Object.values(r.exercises || {}).map(e => `${e.name}: ${e.sets_reps || '—'} @ ${e.weight || '—'}`).join(' · ');
+    return `<div class="list-row"><div class="row-date">${fmtShort(r.date)} · ${r.session_type}</div><div class="row-text">${items}</div></div>`;
+  }).join('') : '<div class="empty-state">No sessions logged yet.</div>';
+
+  const { data: protein } = await sb.from('aliyah_protein_log').select('*').order('date', { ascending:false }).order('created_at', { ascending:true }).limit(60);
+  if (protein && protein.length) {
+    const byDate = {};
+    protein.forEach(r => { (byDate[r.date] = byDate[r.date] || []).push(r); });
+    const dates = Object.keys(byDate).sort().reverse();
+    $('aliyahProteinList').innerHTML = dates.map(date => {
+      const entries = byDate[date];
+      const dayProtein = entries.reduce((s, r) => s + (r.grams || 0), 0);
+      const dayCal = entries.reduce((s, r) => s + (r.calories || 0), 0);
+      const rows = entries.map(r => `<div class="row-text">${r.item} — ${r.grams ? r.grams + 'g' : ''}${r.grams && r.calories ? ' · ' : ''}${r.calories ? r.calories + ' cal' : ''}</div>`).join('');
+      return `<div class="list-row"><div class="row-date">${fmtShort(date)} · ${dayProtein}g protein · ${dayCal} cal</div>${rows}</div>`;
+    }).join('');
+  } else { $('aliyahProteinList').innerHTML = '<div class="empty-state">Nothing logged yet.</div>'; }
+
+  const { data: movement } = await sb.from('aliyah_movement_log').select('*').order('date', { ascending:false }).limit(20);
+  $('aliyahMovementList').innerHTML = (movement && movement.length) ? movement.map(r => `
+    <div class="list-row"><div class="row-date">${fmtShort(r.date)}</div><div class="row-text">${r.type}${r.minutes ? ' · ' + r.minutes + ' min' : ''}${r.distance ? ' · ' + r.distance : ''}</div></div>
+  `).join('') : '<div class="empty-state">No movement logged yet.</div>';
+
+  const { data: wins } = await sb.from('aliyah_wins').select('*').order('date', { ascending:false }).limit(20);
+  $('aliyahWinList').innerHTML = (wins && wins.length) ? wins.map(r => `
+    <div class="list-row"><div class="row-date">${fmtShort(r.date)}</div><div class="row-text">${r.note}</div></div>
+  `).join('') : '<div class="empty-state">No wins logged yet.</div>';
+
+  const { data: photos } = await sb.from('aliyah_photos').select('*').order('date', { ascending:false }).limit(30);
+  $('aliyahPhotoGrid').innerHTML = (photos && photos.length) ? photos.map(p => `
+    <div style="aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--cream-dark);"><img src="${p.url}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></div>
+  `).join('') : '<div class="empty-state" style="grid-column:1/-1;">No photos yet.</div>';
+}
+$('aliyahRefreshBtn').addEventListener('click', loadAliyah);
+
+/* ============ FRANKIE DETAIL ============ */
+$('frankieNoteSaveBtn').addEventListener('click', async () => {
+  if (!ready) { alert('Add your Supabase key in this file first.'); return; }
+  const note = $('frankieNoteInput').value.trim();
+  if (!note) return;
+  const btn = $('frankieNoteSaveBtn'); btn.disabled = true; btn.textContent = 'Saving...';
+  const { error } = await sb.from('coach_notes').insert({ client_key:'frankie', note_date: todayISO(), note });
+  btn.disabled = false; btn.textContent = 'Save note for Frankie';
+  if (error) { alert('Something went wrong saving that. Try again.'); return; }
+  $('frankieNoteInput').value = '';
+  loadFrankie();
+});
+function checkinRowsHtml(payload) {
+  if (!payload || !payload.daily) return '';
+  const c = payload.daily.checkins || {};
+  const labels = { meal1:'Meal 1 before coffee', protein:'Protein every meal', water:'Electrolytes + water', gluten:'Gluten free all day', prepost:'Pre/post workout meal', moved:'Moved body today' };
+  const energyRow = payload.daily.energy ? `<div class="row"><span class="l">Energy</span><span class="v">${ENERGY_EMOJI[payload.daily.energy - 1] || payload.daily.energy}</span></div>` : '';
+  const checkRows = Object.entries(labels).map(([k, label]) => c[k] !== undefined
+    ? `<div class="row"><span class="l">${label}</span><span class="v" style="color:${c[k] ? 'var(--olive)' : 'var(--warn)'};">${c[k] ? '✓' : '✗'}</span></div>` : '').join('');
+  return energyRow + checkRows;
+}
+function nutritionRowsHtml(payload) {
+  if (!payload || !payload.nutrition || !payload.nutrition.habits) return '';
+  return Object.entries(payload.nutrition.habits).map(([k, v]) =>
+    `<div class="row"><span class="l">${k}</span><span class="v" style="color:${v ? 'var(--olive)' : 'var(--warn)'};">${v ? '✓' : '✗'}</span></div>`).join('');
+}
+function movementRowsHtml(payload) {
+  if (!payload || !payload.movement || !payload.movement.data) return '';
+  return Object.entries(payload.movement.data).map(([k, v]) =>
+    `<div class="row"><span class="l">${k}</span><span class="v">${v}</span></div>`).join('');
+}
+function cycleRowsHtml(payload) {
+  if (!payload || !payload.cycle) return '';
+  const rows = [];
+  if (payload.cycle.phase) rows.push(`<div class="row"><span class="l">Cycle phase</span><span class="v">${payload.cycle.phase}</span></div>`);
+  if (payload.cycle.hashi) rows.push(`<div class="row"><span class="l">Hashimoto's</span><span class="v">${payload.cycle.hashi}</span></div>`);
+  return rows.join('');
+}
+function weightsRowsHtml(payload) {
+  if (!payload || !payload.trainingWeights) return '';
+  return Object.entries(payload.trainingWeights).map(([k, v]) => {
+    const parts = k.split('|'); const exName = parts[1] || k;
+    return `<div class="row"><span class="l">${exName}</span><span class="v">${v}</span></div>`;
+  }).join('');
+}
+async function loadFrankie() {
+  if (!ready) return;
+  const { data: notes } = await sb.from('coach_notes').select('*').eq('client_key', 'frankie').order('created_at', { ascending:false }).limit(20);
+  $('frankiePrevNotesList').innerHTML = (notes && notes.length) ? notes.map(n => `
+    <div class="list-row"><div class="row-date">${n.note_date || ''}</div><div class="row-text">${n.note}</div></div>
+  `).join('') : '<div class="empty-state">No notes written yet.</div>';
+
+  const { data: rows } = await sb.from('client_daily_logs').select('log_date,payload').eq('client_key', 'frankie').order('log_date', { ascending:false }).limit(30);
+  if (!rows || !rows.length) {
+    $('frankieStatDays').textContent = 0; $('frankieStatStreak').textContent = 0; $('frankieStatFlares').textContent = 0;
+    $('frankieLogsList').innerHTML = '<div class="empty-state">No logs yet.</div>';
+    return;
+  }
+  $('frankieStatDays').textContent = rows.length;
+  $('frankieStatFlares').textContent = rows.filter(r => r.payload && r.payload.cycle && r.payload.cycle.hashi === 'flare').length;
+  let streak = 0;
+  let cursor = new Date(todayISO() + 'T00:00:00');
+  const dateSet = new Set(rows.map(r => r.log_date));
+  while (dateSet.has(cursor.toISOString().slice(0,10))) { streak++; cursor.setDate(cursor.getDate() - 1); }
+  $('frankieStatStreak').textContent = streak;
+  $('frankieLogsList').innerHTML = rows.map(r => {
+    const body = [checkinRowsHtml(r.payload), nutritionRowsHtml(r.payload), movementRowsHtml(r.payload), cycleRowsHtml(r.payload), weightsRowsHtml(r.payload)].join('');
+    return `<div class="day-block"><div class="day-date">${fmtLong(r.log_date)}</div>${body || '<div class="empty-state" style="padding:6px 0;">No detail in this entry.</div>'}</div>`;
+  }).join('');
+}
+$('frankieRefreshBtn').addEventListener('click', loadFrankie);
+
+/* ============ BOOT ============ */
+$('topSub').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+if (ready) loadRoster();
+</script>
+</body>
+</html>
