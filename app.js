@@ -64,7 +64,23 @@ async function loadNoLoginLogs(){
 }
 function openNoLoginClient(key,rows){
   const entries=rows.filter(x=>x.client_key===key);
-  $('coachDetail').innerHTML=`<section class="section"><div class="section-heading"><div><div class="eyebrow">No-login client page</div><h2>${esc(key.charAt(0).toUpperCase()+key.slice(1))}</h2><p>Saved workout and daily activity records</p></div><button class="btn ghost" id="backLegacy">Back to roster</button></div>${entries.map(x=>`<article class="card"><div class="eyebrow">${esc(date(x.log_date))}</div><pre class="legacy-payload">${esc(JSON.stringify(x.payload||{},null,2))}</pre></article>`).join('')||'<div class="empty card">No saved entries.</div>'}</section>`;
+  const safe=v=>esc(v==null?'':String(v));
+  const foodHtml=(p)=>{
+    const foods=Array.isArray(p?.foodEntries)?p.foodEntries:[];
+    if(foods.length)return foods.map(f=>`<div class="list-row"><strong>${safe(f.item)}</strong><span>${safe(f.protein?f.protein+'g protein':'')}${f.protein&&f.calories?' · ':''}${safe(f.calories?f.calories+' cal':'')}</span></div>`).join('');
+    const f=p?.foodLog||{};
+    return Object.entries(f).filter(([k,v])=>['breakfast','lunch','dinner','snacks'].includes(k)&&v).map(([k,v])=>`<div class="list-row"><strong>${safe(k.charAt(0).toUpperCase()+k.slice(1))}</strong><span>${safe(v)}</span></div>`).join('')||'<p class="sub">No food entries saved for this day.</p>';
+  };
+  const workoutHtml=(p)=>{
+    const fb=p?.workoutFeedback||{};
+    const fields=p?.fields||{};
+    const rating=fb.overallRating??fields['overall-session-rating']??'';
+    const note=fb.note||fields['session-notes']||'';
+    const exercises=fb.exerciseRatings||{};
+    const exerciseRows=Object.entries(exercises).map(([name,value])=>`<div class="list-row"><span>${safe(name)}</span><strong>${safe(value)}/10</strong></div>`).join('');
+    return `<div class="list-row"><strong>Overall workout rating</strong><span>${rating?safe(rating)+'/10':'Not rated'}</span></div>${exerciseRows}${note?`<p><strong>Workout notes:</strong> ${safe(note)}</p>`:''}`;
+  };
+  $('coachDetail').innerHTML=`<section class="section"><div class="section-heading"><div><div class="eyebrow">No-login client page</div><h2>${safe(key.charAt(0).toUpperCase()+key.slice(1))}</h2><p>Food logs and workout feedback</p></div><button class="btn ghost" id="backLegacy">Back to roster</button></div>${entries.map(x=>{const p=x.payload||{};return `<article class="card"><div class="eyebrow">${safe(date(x.log_date))}</div><h3>Food log</h3>${foodHtml(p)}<h3 style="margin-top:16px">Workout feedback</h3>${workoutHtml(p)}</article>`}).join('')||'<div class="empty card">No saved entries.</div>'}</section>`;
   $('backLegacy').onclick=coachHub;
 }
 async function coachHub(){S.mode='coach';top('Coach Hub');$('nav').classList.add('hide');main(`<section class="page-intro"><h1>Your coaching dashboard</h1><p>Client roster, programming, and coaching notes.</p></section><section class="stats-grid"><article class="stat-card"><div class="stat-label">Assigned clients</div><div class="stat-value">${S.roster.length}</div></article><article class="stat-card"><div class="stat-label">Exercises</div><div class="stat-value">${S.exerciseCount||0}</div></article><article class="stat-card"><div class="stat-label">Templates</div><div class="stat-value">${S.templateCount||0}</div></article></section><section class="section"><h2>Clients</h2><div class="client-grid">${S.roster.map(c=>`<button class="client-card card" data-client="${esc(c.id)}"><span class="client-card-info"><strong>${esc(name(c))}</strong><small>${esc(c.email||'Client profile')}</small></span>›</button>`).join('')||'<div class="empty card">No clients assigned to this coach account.</div>'}</div></section><section class="section"><h2>No-login client pages</h2><p class="sub">Activity saved from direct client links, without client accounts or passwords.</p><div id="noLoginClients" class="client-grid"></div></section><section id="coachDetail"></section>`);document.querySelectorAll('[data-client]').forEach(b=>b.onclick=()=>openClient(b.dataset.client));loadNoLoginLogs()}
