@@ -83,6 +83,8 @@ function openNoLoginClient(key,rows){
     const fields=p?.fields||{};
     const rating=fb.overallRating??fields['overall-session-rating']??'';
     const note=fb.note||fields['session-notes']||'';
+    const routineFeedback=p?.routineFeedback||{};
+    const routineRows=Object.entries(routineFeedback).map(([id,v])=>`<div class="card" style="padding:12px;margin:8px 0"><strong>${esc(v.routineName||id)}</strong><div class="list-row"><span>Difficulty</span><strong>${esc(v.rating||'Not rated')}</strong></div>${v.note?`<p>${esc(v.note)}</p>`:''}</div>`).join('');
     const exerciseRatings=fb.exerciseRatings||{};
     const exerciseLogs=fb.exerciseLogs||{};
     const rows=[];
@@ -98,7 +100,7 @@ function openNoLoginClient(key,rows){
       rows[rows.indexOf(item)]=item.replace('</span></div>',`</span><span>${label}: ${safe(value)}</span></div>`);
     });
     Object.entries(exerciseRatings).forEach(([name,value])=>rows.push(`<div class="list-row"><span>${safe(name)} rating</span><strong>${safe(value)}/10</strong></div>`));
-    return `<div class="list-row"><strong>Overall workout rating</strong><span>${rating?safe(rating)+'/10':'Not rated'}</span></div>${rows.join('')}${note?`<p><strong>Workout notes:</strong> ${safe(note)}</p>`:''}`;
+    return `${routineRows}<div class="list-row"><strong>Overall workout rating</strong><span>${rating?safe(rating)+'/10':'Not rated'}</span></div>${rows.join('')}${note?`<p><strong>Workout notes:</strong> ${safe(note)}</p>`:''}`;
   };
   $('coachDetail').innerHTML=`<section class="section"><div class="section-heading"><div><div class="eyebrow">No-login client page</div><h2>${safe(key.charAt(0).toUpperCase()+key.slice(1))}</h2><p>Assigned programming, food logs and workout feedback</p></div><button class="btn ghost" id="backLegacy">Back to roster</button></div>${noLoginProgramHtml(key)}<section class="section"><h3>Daily activity & feedback</h3>${entries.map(x=>{const p=x.payload||{};return `<article class="card"><div class="eyebrow">${safe(date(x.log_date))}</div><h3>Food log</h3>${foodHtml(p)}<h3 style="margin-top:16px">Workout feedback</h3>${workoutHtml(p)}</article>`}).join('')||'<div class="empty card">No saved entries.</div>'}</section></section>`;
   $('backLegacy').onclick=coachHub;
