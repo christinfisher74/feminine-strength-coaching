@@ -290,3 +290,6 @@ label { display: block; color: var(--forest); font-size: 13px; font-weight: 700;
   .section-heading { align-items: flex-start; }
   .section-heading h2 { font-size: 22px; }
 }
+
+/* Read-only display for activity submitted through password-free client links. */
+.legacy-payload{white-space:pre-wrap;overflow-wrap:anywhere;max-height:360px;overflow:auto;background:#f8f7f3;border:1px solid #e7e3da;border-radius:10px;padding:12px;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;color:#35443a}
