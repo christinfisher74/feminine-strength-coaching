@@ -58,8 +58,8 @@ async function loadNoLoginLogs(){
     }).join('');
     box.querySelectorAll('[data-legacy]').forEach(b=>b.onclick=()=>openNoLoginClient(b.dataset.legacy,rows));
   }catch(e){
-    box.innerHTML='<div class="empty card">No-login activity could not be loaded. Check the table permissions for the coach account.</div>';
-    console.warn('No-login client logs unavailable:',e.message);
+    box.innerHTML=`<div class="empty card"><strong>Could not load no-login activity.</strong><p>${esc(e.message||'Unknown database error')}</p><small>This is the database response, not a client login problem.</small></div>`;
+    console.warn('No-login client logs unavailable:',e);
   }
 }
 function openNoLoginClient(key,rows){
