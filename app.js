@@ -83,9 +83,22 @@ function openNoLoginClient(key,rows){
     const fields=p?.fields||{};
     const rating=fb.overallRating??fields['overall-session-rating']??'';
     const note=fb.note||fields['session-notes']||'';
-    const exercises=fb.exerciseRatings||{};
-    const exerciseRows=Object.entries(exercises).map(([name,value])=>`<div class="list-row"><span>${safe(name)}</span><strong>${safe(value)}/10</strong></div>`).join('');
-    return `<div class="list-row"><strong>Overall workout rating</strong><span>${rating?safe(rating)+'/10':'Not rated'}</span></div>${exerciseRows}${note?`<p><strong>Workout notes:</strong> ${safe(note)}</p>`:''}`;
+    const exerciseRatings=fb.exerciseRatings||{};
+    const exerciseLogs=fb.exerciseLogs||{};
+    const rows=[];
+    Object.entries(exerciseLogs).forEach(([name,v])=>rows.push(`<div class="list-row"><span><strong>${safe(name)}</strong><small> ${v.completed?'Completed':'Not marked complete'}</small></span><span>${safe(v.weight||'No weight')} · ${safe(v.reps||'No reps')} reps · Effort ${safe(v.effort||'—')}</span></div>`));
+    Object.entries(fields).forEach(([id,value])=>{
+      if(!value)return;
+      const m=id.match(/^(back|lower)(\d+)-(weight|reps|rpe)$/);
+      if(!m)return;
+      const group=m[1]==='back'?'Back Strength':'Lower Body + Core',n=m[2],kind=m[3];
+      let item=rows.find(x=>x.includes('data-id="'+group+'-'+n+'"'));
+      if(!item){const name=group+' · Exercise '+n;rows.push(`<div class="list-row" data-id="${safe(group)}-${n}"><strong>${safe(name)}</strong><span></span></div>`);item=rows[rows.length-1]}
+      const label=kind==='weight'?'Weight':kind==='reps'?'Reps':'Effort';
+      rows[rows.indexOf(item)]=item.replace('</span></div>',`</span><span>${label}: ${safe(value)}</span></div>`);
+    });
+    Object.entries(exerciseRatings).forEach(([name,value])=>rows.push(`<div class="list-row"><span>${safe(name)} rating</span><strong>${safe(value)}/10</strong></div>`));
+    return `<div class="list-row"><strong>Overall workout rating</strong><span>${rating?safe(rating)+'/10':'Not rated'}</span></div>${rows.join('')}${note?`<p><strong>Workout notes:</strong> ${safe(note)}</p>`:''}`;
   };
   $('coachDetail').innerHTML=`<section class="section"><div class="section-heading"><div><div class="eyebrow">No-login client page</div><h2>${safe(key.charAt(0).toUpperCase()+key.slice(1))}</h2><p>Assigned programming, food logs and workout feedback</p></div><button class="btn ghost" id="backLegacy">Back to roster</button></div>${noLoginProgramHtml(key)}<section class="section"><h3>Daily activity & feedback</h3>${entries.map(x=>{const p=x.payload||{};return `<article class="card"><div class="eyebrow">${safe(date(x.log_date))}</div><h3>Food log</h3>${foodHtml(p)}<h3 style="margin-top:16px">Workout feedback</h3>${workoutHtml(p)}</article>`}).join('')||'<div class="empty card">No saved entries.</div>'}</section></section>`;
   $('backLegacy').onclick=coachHub;
