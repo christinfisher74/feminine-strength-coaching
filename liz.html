@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#1E3329"><title>Liz · Stronger by Spring</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><link rel="stylesheet" href="styles.css">
+<style>
+.liz-wrap{max-width:900px;margin:0 auto;padding:22px 16px 50px}.hero-liz{background:#1e3329;color:#fff;border-radius:22px;padding:26px;margin-bottom:18px}.hero-liz h1{font:600 38px 'Cormorant Garamond',serif;margin:5px 0}.eyebrow-liz{font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:.8}.countdown{font-size:44px;font-weight:700;line-height:1.1;margin:8px 0}.liz-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}.liz-card{background:#fff;border:1px solid #e5e8e3;border-radius:16px;padding:18px;margin-bottom:14px}.liz-card h2,.liz-card h3{margin-top:0}.habit{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid #edf0eb}.habit:last-child{border:0}.habit input{width:18px;height:18px;accent-color:#385a45}.liz-btn{background:#1e3329;color:#fff;border:0;border-radius:10px;padding:12px 18px;font-weight:700;cursor:pointer}.liz-btn:disabled{opacity:.5}.muted{color:#68736b;font-size:13px}.workout{border-top:1px solid #e8ece7;padding:12px 0}.workout strong{display:block}.pill{display:inline-block;background:#edf2ed;border-radius:30px;padding:5px 10px;font-size:12px;color:#26382e}.field{width:100%;padding:10px;border:1px solid #d8ded7;border-radius:9px;margin:6px 0 12px;font:inherit}
+</style></head><body><main class="liz-wrap">
+<section class="hero-liz"><div class="eyebrow-liz">Feminine Strength Company · Personal coaching</div><h1>Stronger by Spring</h1><p>Your goal. Your progress. Your next step.</p><div class="eyebrow-liz">Your trip countdown · March 3, 2027</div><div class="countdown" id="countdown">—</div><p class="muted" style="color:#d5dfd6">days until your trip</p><span class="pill">Long-term goal: 100 lb weight loss</span></section>
+<section class="liz-grid"><article class="liz-card"><h2>This week's focus</h2><p><strong>2 coached workouts</strong><br><span class="muted">Monday · Full-body metabolic circuit</span><br><span class="muted">Thursday · Full-body conditioning circuit</span></p></article><article class="liz-card"><h2>Build consistency</h2><p class="muted">The goal is steady habits, not perfection. A missed day is a chance to restart at the next opportunity.</p><p><strong>Walking:</strong> aim for 4–5 days each week.</p><p><strong>Nutrition:</strong> focus on consistent meals and protein.</p></article></section>
+<section class="liz-card"><h2>Today's habit check</h2><p class="muted" id="todayLabel"></p><div id="habits">
+<label class="habit"><input type="checkbox" data-habit="walk"> <span><strong>Got my walk or planned movement in</strong><br><small class="muted">Any purposeful movement counts toward consistency.</small></span></label>
+<label class="habit"><input type="checkbox" data-habit="nutrition"> <span><strong>Stayed consistent with my meals</strong><br><small class="muted">No perfection required.</small></span></label>
+<label class="habit"><input type="checkbox" data-habit="protein"> <span><strong>Included protein throughout the day</strong></span></label>
+<label class="habit"><input type="checkbox" data-habit="water"> <span><strong>Stayed on top of hydration</strong></span></label>
+<label class="habit"><input type="checkbox" data-habit="recovery"> <span><strong>Made time for recovery</strong></span></label></div><button class="liz-btn" id="saveHabits">Save today's check-in</button><p class="muted" id="saveStatus" role="status"></p></section>
+<section class="liz-card"><h2>Your coached workouts</h2><div class="workout"><strong>Monday · Full Body Metabolic Circuit</strong><p class="muted">3 rounds per circuit. Controlled pace, purposeful transitions, 45–75 seconds rest between rounds as needed.</p><p>Barbell Hip Thrust 3×12 · DB Squat to Press 3×10–12 · Bent-Over DB Row 3×12 · Reverse Lunge 3×8–10/side · Pallof Press 3×10/side.</p><p>DB Romanian Deadlift 3×12 · DB Chest Press 3×12 · Step-Ups 3×10/side · DB Lateral Raise 3×12 · Farmer Carry 3×40 ft.</p><p class="muted">Finisher: 2–3 rounds — KB swings ×15, lateral band walk ×10/side, squat hold ×30 sec.</p></div><div class="workout"><strong>Thursday · Full Body Conditioning Circuit</strong><p class="muted">3 rounds per circuit. Trap-bar work is moderate and crisp, not a max-effort test.</p><p>Trap Bar Deadlift 3×10 · DB Walking Lunge 3×8/side · Lat Pulldown 3×12 · DB Shoulder Press 3×10–12 · Step-Down 3×8/side.</p><p>KB Goblet Squat 3×12–15 · Single-Arm Cable Row 3×10/side · DB Sumo Squat 3×12 · DB Curl to Press 3×10 · Glute Bridge March 3×10/side.</p><p class="muted">Finisher: 2–3 rounds — marching farmer carry ×30 sec, mountain climbers ×20 total, band abduction ×12/side.</p></div><p class="muted">Your coach will adjust exercises, loads and rounds to your current ability and recovery. Form comes before speed.</p></section>
+<section class="liz-card"><h2>Weekly check-in</h2><p class="muted">Take a minute to reflect. Your coach can review your answers in the Coaching Hub.</p><label>How many days did you walk?<input class="field" id="walkDays" type="number" min="0" max="7" placeholder="e.g. 4"></label><label>How consistent was your nutrition?<select class="field" id="nutritionRating"><option value="">Choose one</option><option>Very consistent</option><option>Mostly consistent</option><option>Up and down</option><option>I struggled this week</option></select></label><label>How was your energy?<select class="field" id="energy"><option value="">Choose one</option><option>Great</option><option>Good</option><option>Okay</option><option>Low</option></select></label><label>What went well this week?<textarea class="field" id="win" rows="2"></textarea></label><label>What got in your way or what support do you need?<textarea class="field" id="support" rows="2"></textarea></label><button class="liz-btn" id="saveWeekly">Send weekly check-in</button><p class="muted" id="weeklyStatus" role="status"></p></section>
+<footer class="muted" style="text-align:center;padding:12px">Feminine Strength Company · Stability before intensity.</footer>
+</main>
+<script>
+(function(){
+const db=window.supabase.createClient(window.FSC_CONFIG.SUPABASE_URL,window.FSC_CONFIG.SUPABASE_PUBLISHABLE_KEY);
+const key='liz',trip=new Date('2027-03-03T00:00:00');
+const iso=()=>new Date().toISOString().slice(0,10);
+const days=Math.max(0,Math.ceil((new Date(trip.toDateString())-new Date(new Date().toDateString()))/86400000));
+document.getElementById('countdown').textContent=days;
+document.getElementById('todayLabel').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+let payload={};
+async function load(){
+ const {data,error}=await db.from('client_daily_logs').select('payload').eq('client_key',key).eq('log_date',iso()).maybeSingle();
+ if(error){document.getElementById('saveStatus').textContent='Could not load today’s saved check-in. You can still try saving.';return}
+ payload=data?.payload||{};
+ const h=payload.habits||{};
+ document.querySelectorAll('[data-habit]').forEach(x=>x.checked=!!h[x.dataset.habit]);
+}
+async function save(next,statusId){
+ payload={...payload,...next};
+ const {error}=await db.from('client_daily_logs').upsert({client_key:key,log_date:iso(),payload,updated_at:new Date().toISOString()},{onConflict:'client_key,log_date'});
+ document.getElementById(statusId).textContent=error?'Could not save: '+error.message:'Saved. Your coach can review this in the Coaching Hub.';
+}
+document.getElementById('saveHabits').onclick=()=>{const habits={};document.querySelectorAll('[data-habit]').forEach(x=>habits[x.dataset.habit]=x.checked);save({habits},'saveStatus')};
+document.getElementById('saveWeekly').onclick=()=>save({weeklyCheckin:{date:iso(),walkDays:document.getElementById('walkDays').value,nutrition:document.getElementById('nutritionRating').value,energy:document.getElementById('energy').value,win:document.getElementById('win').value,support:document.getElementById('support').value}},'weeklyStatus');
+load();
+})();
+</script></body></html>
