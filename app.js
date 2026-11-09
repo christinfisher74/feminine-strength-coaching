@@ -49,7 +49,7 @@ async function loadNoLoginLogs(){
     const r=await db.from('client_daily_logs').select('client_key,log_date,payload,updated_at').order('log_date',{ascending:false}).limit(300);
     if(r.error)throw r.error;
     const rows=r.data||[];
-    const keys=[...new Set([...rows.map(x=>x.client_key).filter(Boolean),'liz'])];
+    const keys=[...new Set([...rows.map(x=>x.client_key).filter(Boolean),'liz','aliyah'])];
     if(!keys.length){box.innerHTML='<div class="empty card">No no-login client activity has been saved yet.</div>';return}
     box.innerHTML=keys.map(key=>{
       const count=rows.filter(x=>x.client_key===key).length;
@@ -69,9 +69,29 @@ function noLoginProgramHtml(key){
   const safe=v=>esc(v==null?'':String(v));
   return `<section class="section"><h3>Assigned workouts</h3><p class="sub">Existing program from the client's direct page. Programming shown here is read-only.</p>${workouts.map(w=>`<article class="workout-card card"><div class="workout-card-top"><div><div class="eyebrow">${safe(w.day)}</div><h3>${safe(w.name)}</h3></div><span class="status-pill">Assigned</span></div>${w.focus?`<p><strong>Focus:</strong> ${safe(w.focus)}</p>`:''}${w.note?`<p class="sub">${safe(w.note)}</p>`:''}<div class="exercise-list">${w.exercises.map((x,i)=>`<div class="exercise-row"><div class="exercise-number">${i+1}</div><div class="exercise-info"><strong>${safe(x.name)}</strong>${x.dose?`<div class="exercise-meta">${safe(x.dose)}</div>`:''}${x.cue?`<p>${safe(x.cue)}</p>`:''}</div></div>`).join('')}</div>${w.finisher?'<div class="card" style="padding:12px;margin-top:12px"><strong>'+safe(w.finisher.name)+'</strong><p>'+safe(w.finisher.detail)+'</p><p class="sub">'+safe(w.finisher.cue)+'</p></div>':''}${w.walk?'<div class="card" style="padding:12px;margin-top:12px"><strong>Conditioning</strong><p>'+safe(w.walk)+'</p></div>':''}</article>`).join('')}</section>`;
 }
-function openNoLoginClient(key,rows){
+async function openNoLoginClient(key,rows){
   const entries=rows.filter(x=>x.client_key===key);
   const safe=v=>esc(v==null?'':String(v));
+  let aliyahSessionsHtml='';
+  if(key==='aliyah'){
+    try{
+      const result=await db.from('aliyah_sessions').select('date,session_type,exercises').order('date',{ascending:false}).limit(100);
+      if(result.error)throw result.error;
+      const sessions=result.data||[];
+      aliyahSessionsHtml='<section class="section"><h3>Saved workout sessions</h3>'+
+        (sessions.length?sessions.map(session=>{
+          const exercises=session.exercises&&typeof session.exercises==='object'?Object.values(session.exercises):[];
+          return '<article class="card"><div class="eyebrow">'+safe(date(session.date))+' · '+safe(session.session_type||'Workout')+'</div>'+
+            (exercises.length?'<div class="exercise-list">'+exercises.map((exercise,index)=>
+              '<div class="exercise-row"><div class="exercise-number">'+(index+1)+'</div><div class="exercise-info"><strong>'+safe(exercise.name||'Exercise')+'</strong>'+
+              '<div class="exercise-meta">'+safe(exercise.weight||'No weight recorded')+(exercise.sets_reps?' · '+safe(exercise.sets_reps):'')+'</div></div></div>'
+            ).join('')+'</div>':'<p class="sub">No exercise details were saved for this session.</p>')+
+          '</article>';
+        }).join(''):'<div class="empty card">No saved workout sessions have been found yet.</div>')+'</section>';
+    }catch(error){
+      aliyahSessionsHtml='<section class="section"><h3>Saved workout sessions</h3><div class="empty card"><strong>Could not load Aliyah’s saved sessions.</strong><p>'+safe(error.message||'Database request failed')+'</p><small>Her original workout page and saved records have not been changed.</small></div></section>';
+    }
+  }
   const goals=entries.map(x=>({row:x,goal:x.payload?.monthlyGoal})).filter(x=>x.goal&&typeof x.goal==='object').sort((a,b)=>new Date(b.goal.submittedAt||b.row.updated_at||b.row.log_date)-new Date(a.goal.submittedAt||a.row.updated_at||a.row.log_date));
   const g=goals[0]?.goal, goalDate=g?.submittedAt||goals[0]?.row.log_date;
   const monthlyGoalHtml=key==='frankie'?'<section class="section"><h3>Monthly goal</h3>'+(g?'<article class="card"><div class="eyebrow">'+safe(g.month||'Month not specified')+' · Submitted '+safe(goalDate?new Date(goalDate).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'date unavailable')+'</div><h3>'+safe(g.goal||'Goal not provided')+'</h3><p><strong>Why it matters</strong><br>'+safe(g.why||'Not provided')+'</p><p><strong>How progress will be measured</strong><br>'+safe(g.progress||'Not provided')+'</p>'+(g.progressUpdate?'<p><strong>Latest progress update</strong><br>'+safe(g.progressUpdate)+'</p>':'')+'</article>':'<div class="empty card">No monthly goal has synced yet.</div>')+'</section>':'';
@@ -110,7 +130,7 @@ function openNoLoginClient(key,rows){
     Object.entries(exerciseRatings).forEach(([name,value])=>rows.push(`<div class="list-row"><span>${safe(name)} rating</span><strong>${safe(value)}/10</strong></div>`));
     return `${routineRows}<div class="list-row"><strong>Overall workout rating</strong><span>${rating?(typeof rating==='number'?safe(rating)+'/10':safe(rating)):'Not rated'}</span></div>${rows.join('')}${note?`<p><strong>Workout notes:</strong> ${safe(note)}</p>`:''}`;
   };
-  $('coachDetail').innerHTML=`<section class="section"><div class="section-heading"><div><div class="eyebrow">No-login client page</div><h2>${safe(key.charAt(0).toUpperCase()+key.slice(1))}</h2><p>Assigned programming, food logs and workout feedback</p></div><button class="btn ghost" id="backLegacy">Back to roster</button></div>${monthlyGoalHtml}${weeklyHtml}${lizHabitsHtml}${key==='liz'?'<section class="section"><article class="card"><div class="eyebrow">STRONGER BY SPRING</div><h3>Trip countdown · March 3, 2027</h3><div class="stat-value">'+Math.max(0,Math.ceil((new Date('2027-03-03T00:00:00')-new Date(new Date().toDateString()))/86400000))+' days</div><p>100-lb long-term goal · build consistent habits, strength and endurance.</p><a class="btn" href="liz.html" target="_blank" rel="noopener">Open Liz client dashboard ↗</a></article></section>':''}${noLoginProgramHtml(key)}<section class="section"><h3>Daily activity & feedback</h3>${entries.map(x=>{const p=x.payload||{};return `<article class="card"><div class="eyebrow">${safe(date(x.log_date))}</div><h3>Food log</h3>${foodHtml(p)}<h3 style="margin-top:16px">Workout feedback</h3>${workoutHtml(p)}</article>`}).join('')||'<div class="empty card">No saved entries.</div>'}</section></section>`;
+  $('coachDetail').innerHTML=`<section class="section"><div class="section-heading"><div><div class="eyebrow">No-login client page</div><h2>${safe(key.charAt(0).toUpperCase()+key.slice(1))}</h2><p>Assigned programming, food logs and workout feedback</p></div><button class="btn ghost" id="backLegacy">Back to roster</button></div>${monthlyGoalHtml}${weeklyHtml}${lizHabitsHtml}${aliyahSessionsHtml}${key==='liz'?'<section class="section"><article class="card"><div class="eyebrow">STRONGER BY SPRING</div><h3>Trip countdown · March 3, 2027</h3><div class="stat-value">'+Math.max(0,Math.ceil((new Date('2027-03-03T00:00:00')-new Date(new Date().toDateString()))/86400000))+' days</div><p>100-lb long-term goal · build consistent habits, strength and endurance.</p><a class="btn" href="liz.html" target="_blank" rel="noopener">Open Liz client dashboard ↗</a></article></section>':''}${noLoginProgramHtml(key)}<section class="section"><h3>Daily activity & feedback</h3>${entries.map(x=>{const p=x.payload||{};return `<article class="card"><div class="eyebrow">${safe(date(x.log_date))}</div><h3>Food log</h3>${foodHtml(p)}<h3 style="margin-top:16px">Workout feedback</h3>${workoutHtml(p)}</article>`}).join('')||'<div class="empty card">No saved entries.</div>'}</section></section>`;
   $('backLegacy').onclick=coachHub;
 }
 async function coachHub(){S.mode='coach';top('Coach Hub');$('nav').classList.add('hide');main(`<section class="page-intro"><h1>Your coaching dashboard</h1><p>Client roster, programming, and coaching notes.</p></section><section class="stats-grid"><article class="stat-card"><div class="stat-label">Assigned clients</div><div class="stat-value">${S.roster.length}</div></article><article class="stat-card"><div class="stat-label">Exercises</div><div class="stat-value">${S.exerciseCount||0}</div></article><article class="stat-card"><div class="stat-label">Templates</div><div class="stat-value">${S.templateCount||0}</div></article></section><section class="section"><h2>Clients</h2><div class="client-grid">${S.roster.map(c=>`<button class="client-card card" data-client="${esc(c.id)}"><span class="client-card-info"><strong>${esc(name(c))}</strong><small>${esc(c.email||'Client profile')}</small></span>›</button>`).join('')||'<div class="empty card">No clients assigned to this coach account.</div>'}</div></section><section class="section"><h2>No-login client pages</h2><p class="sub">Activity saved from direct client links, without client accounts or passwords.</p><div id="noLoginClients" class="client-grid"></div></section><section id="coachDetail"></section>`);document.querySelectorAll('[data-client]').forEach(b=>b.onclick=()=>openClient(b.dataset.client));loadNoLoginLogs()}
