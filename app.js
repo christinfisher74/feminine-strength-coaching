@@ -74,6 +74,7 @@ async function openNoLoginClient(key,rows){
   const safe=v=>esc(v==null?'':String(v));
   let aliyahSessionsHtml='';
   let aliyahCheckinsHtml='';
+  let aliyahFoodHtml='';
   let aliyahCoachProgressHtml='';
   if(key==='aliyah'){
     const progressResult=await db.from('aliyah_wins').select('date,note').order('date',{ascending:false}).limit(100);
@@ -105,6 +106,25 @@ async function openNoLoginClient(key,rows){
         }).join(''):'<div class="empty card">No saved workout sessions have been found yet.</div>')+'</section>';
     }catch(error){
       aliyahSessionsHtml='<section class="section"><h3>Saved workout sessions</h3><div class="empty card"><strong>Could not load Aliyah’s saved sessions.</strong><p>'+safe(error.message||'Database request failed')+'</p><small>Her original workout page and saved records have not been changed.</small></div></section>';
+    }
+    try{
+      const foodResult=await db.from('aliyah_protein_log').select('date,item,grams,calories,created_at').order('date',{ascending:false}).order('created_at',{ascending:false}).limit(300);
+      if(foodResult.error)throw foodResult.error;
+      const foodRows=foodResult.data||[];
+      const byDay={};
+      foodRows.forEach(row=>{const day=row.date||'Undated';(byDay[day]||(byDay[day]=[])).push(row);});
+      const days=Object.entries(byDay);
+      aliyahFoodHtml='<section class="section"><h3>Food log</h3>'+
+        (days.length?days.map(([day,items])=>{
+          const protein=items.reduce((sum,item)=>sum+(Number(item.grams)||0),0);
+          const calories=items.reduce((sum,item)=>sum+(Number(item.calories)||0),0);
+          return '<article class="card"><div class="eyebrow">'+safe(date(day))+'</div>'+
+            '<div class="list-row"><strong>Daily total</strong><span>'+protein+'g protein · '+calories+' calories</span></div>'+
+            items.map(item=>'<div class="list-row"><span><strong>'+safe(item.item||'Food entry')+'</strong></span><span>'+safe(item.grams??0)+'g protein · '+safe(item.calories??0)+' cal</span></div>').join('')+
+            '</article>';
+        }).join(''):'<div class="empty card">No food entries have been found in Aliyah’s saved food log.</div>')+'</section>';
+    }catch(error){
+      aliyahFoodHtml='<section class="section"><h3>Food log</h3><div class="empty card"><strong>Could not load Aliyah’s food log.</strong><p>'+safe(error.message||'Database request failed')+'</p></div></section>';
     }
     try{
       const checkinResult=await db.from('aliyah_checkins').select('date,day_type,trained,protein_hit,water,electrolytes,notes').order('date',{ascending:false}).limit(100);
@@ -159,7 +179,7 @@ async function openNoLoginClient(key,rows){
     Object.entries(exerciseRatings).forEach(([name,value])=>rows.push(`<div class="list-row"><span>${safe(name)} rating</span><strong>${safe(value)}/10</strong></div>`));
     return `${routineRows}<div class="list-row"><strong>Overall workout rating</strong><span>${rating?(typeof rating==='number'?safe(rating)+'/10':safe(rating)):'Not rated'}</span></div>${rows.join('')}${note?`<p><strong>Workout notes:</strong> ${safe(note)}</p>`:''}`;
   };
-  $('coachDetail').innerHTML=`<section class="section"><div class="section-heading"><div><div class="eyebrow">No-login client page</div><h2>${safe(key.charAt(0).toUpperCase()+key.slice(1))}</h2><p>Assigned programming, food logs and workout feedback</p></div><button class="btn ghost" id="backLegacy">Back to roster</button></div>${monthlyGoalHtml}${weeklyHtml}${lizHabitsHtml}${aliyahSessionsHtml}${aliyahCheckinsHtml}${aliyahCoachProgressHtml}${key==='liz'?'<section class="section"><article class="card"><div class="eyebrow">STRONGER BY SPRING</div><h3>Trip countdown · March 3, 2027</h3><div class="stat-value">'+Math.max(0,Math.ceil((new Date('2027-03-03T00:00:00')-new Date(new Date().toDateString()))/86400000))+' days</div><p>100-lb long-term goal · build consistent habits, strength and endurance.</p><a class="btn" href="liz.html" target="_blank" rel="noopener">Open Liz client dashboard ↗</a></article></section>':''}${noLoginProgramHtml(key)}<section class="section"><h3>Daily activity & feedback</h3>${entries.map(x=>{const p=x.payload||{};return `<article class="card"><div class="eyebrow">${safe(date(x.log_date))}</div><h3>Food log</h3>${foodHtml(p)}<h3 style="margin-top:16px">Workout feedback</h3>${workoutHtml(p)}</article>`}).join('')||'<div class="empty card">No saved entries.</div>'}</section></section>`;
+  $('coachDetail').innerHTML=`<section class="section"><div class="section-heading"><div><div class="eyebrow">No-login client page</div><h2>${safe(key.charAt(0).toUpperCase()+key.slice(1))}</h2><p>Assigned programming, food logs and workout feedback</p></div><button class="btn ghost" id="backLegacy">Back to roster</button></div>${monthlyGoalHtml}${weeklyHtml}${lizHabitsHtml}${aliyahSessionsHtml}${aliyahFoodHtml}${aliyahCheckinsHtml}${aliyahCoachProgressHtml}${key==='liz'?'<section class="section"><article class="card"><div class="eyebrow">STRONGER BY SPRING</div><h3>Trip countdown · March 3, 2027</h3><div class="stat-value">'+Math.max(0,Math.ceil((new Date('2027-03-03T00:00:00')-new Date(new Date().toDateString()))/86400000))+' days</div><p>100-lb long-term goal · build consistent habits, strength and endurance.</p><a class="btn" href="liz.html" target="_blank" rel="noopener">Open Liz client dashboard ↗</a></article></section>':''}${noLoginProgramHtml(key)}<section class="section"><h3>Daily activity & feedback</h3>${entries.map(x=>{const p=x.payload||{};return `<article class="card"><div class="eyebrow">${safe(date(x.log_date))}</div><h3>Food log</h3>${foodHtml(p)}<h3 style="margin-top:16px">Workout feedback</h3>${workoutHtml(p)}</article>`}).join('')||'<div class="empty card">No saved entries.</div>'}</section></section>`;
   $('backLegacy').onclick=coachHub;
   $('aliyahProgressForm')?.addEventListener('submit',async event=>{
     event.preventDefault();
